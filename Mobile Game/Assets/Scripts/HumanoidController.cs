@@ -10,13 +10,21 @@ public class HumanoidController : MonoBehaviour
     public FixedJoystick joystick;
 
     Rigidbody rb;
+    CharacterController cc;
     Animator anim;
-   
+
+    const float gravitationalConstant = 0.1f;
+
+    float verticalSpeed;
+
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        cc = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+        verticalSpeed = 0f;
+
     }
 
     // Update is called once per frame
@@ -43,7 +51,24 @@ public class HumanoidController : MonoBehaviour
         Vector3 direction = horizontalMovement * right + verticalMovement * forward;
         direction.y = 0;
 
-        rb.velocity += direction * speed * Time.deltaTime;
+        if (cc != null && !cc.isGrounded)
+        {
+            verticalSpeed -= gravitationalConstant * Time.deltaTime;
+
+        }
+        else
+        {
+            verticalSpeed = 0f;
+        }
+
+        if(cc == null)
+            rb.velocity += direction * speed * Time.deltaTime;
+        else
+        {
+            Vector3 targetVelocity = direction * speed * Time.deltaTime + new Vector3(0f, verticalSpeed, 0f);
+            cc.Move(targetVelocity);
+        }
+            
 
         if(isMoving)
         {
@@ -53,20 +78,3 @@ public class HumanoidController : MonoBehaviour
 
     }
 }
-
-/*
-void Update()
-{
-    float horizontalInput = Input.GetAxis("Horizontal");
-    float verticalInput = Input.GetAxis("Vertical");
-
-    Vector3 movementDirection = new Vector3(horizontalInput, 0, verticalInput);
-    movementDirection.Normalize();
-    transform.Translate(movementDirection * speed * Time.deltaTime, Space.World);
-
-    if (movementDirection != Vector3.zero)
-    {
-        
-    }
-}
-*/
